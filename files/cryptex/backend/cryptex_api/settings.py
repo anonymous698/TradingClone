@@ -1,11 +1,26 @@
 from pathlib import Path
 from datetime import timedelta
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-cryptex-trading-platform-secret-key-2024'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+if not SECRET_KEY:
+    raise ValueError("No SECRET_KEY found in environment variables!")
 DEBUG = False
 ALLOWED_HOSTS = ['*']
 STATIC_ROOT = 'staticfiles'
+CORS_ALLOW_ALL_ORIGINS = True          # For development (change later)
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'trading-clone-9o4z12sj1-indraad444-gmailcoms-projects.vercel.app',   # ← Add your Vercel URL later
+]
+
+# Important for cookies
+CSRF_COOKIE_SECURE = False        # Set to True when using HTTPS
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,7 +54,7 @@ WSGI_APPLICATION = 'cryptex_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': 'db.sqlite3',
     }
 }
 
