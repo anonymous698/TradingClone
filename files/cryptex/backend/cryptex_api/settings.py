@@ -16,7 +16,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'https://trading-clone-9o4z12sj1-indraad444-gmailcoms-projects.vercel.app',   # ← Your Vercel URL
-    'https://*.vercel.app',      
+    'https://*.vercel.app',  
+    'https://simple69trade.vercel.app',    
      'https://tradingclone-production.up.railway.app'                                                                                                 # ← Allows all Vercel subdomains
 ]
 

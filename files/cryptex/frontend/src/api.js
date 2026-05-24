@@ -1,47 +1,38 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://tradingclone-production.up.railway.app';
+const BASE = 'https://tradingclone-production.up.railway.app/api';
 
 const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: BASE,
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Auto-add CSRF token
 api.interceptors.request.use((config) => {
-  const csrfToken = document.cookie
-    .split('; ')
-    .find(row => row.startsWith('csrftoken='))
-    ?.split('=')[1];
-
-  if (csrfToken) {
-    config.headers['X-CSRFToken'] = csrfToken;
-  }
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Auth APIs
 export const authAPI = {
-  login: (username, password) => 
-    api.post('/api/auth/login/', { username, password }),
-  
-  register: (data) => 
-    api.post('/api/auth/register/', data),
+  login: (username, password) => api.post('/auth/login/', { username, password }),
+  register: (data) => api.post('/auth/register/', data),
 };
 
-// Market & Trading APIs (added for Trade.jsx)
 export const marketAPI = {
-  getMarketData: () => api.get('/api/market/'),
-  getPrice: (symbol) => api.get(`/api/market/price/${symbol}/`),
+  getMarkets: () => api.get('/market/'),
+  getCoin: (symbol) => api.get(`/market/${symbol}/`),
 };
 
 export const tradingAPI = {
-  getPositions: () => api.get('/api/trading/positions/'),
-  placeOrder: (orderData) => api.post('/api/trading/orders/', orderData),
-  getOrders: () => api.get('/api/trading/orders/'),
+  getPortfolio: () => api.get('/portfolio/'),
+  placeOrder: (data) => api.post('/orders/', data),
+  getOrders: () => api.get('/orders/history/'),
+  getTransactions: () => api.get('/transactions/'),
+  getAccount: () => api.get('/account/'),
+  deposit: (amount) => api.post('/deposit/', { amount }),
+  getWatchlist: () => api.get('/watchlist/'),
+  addWatchlist: (symbol) => api.post('/watchlist/', { symbol }),
+  removeWatchlist: (symbol) => api.delete(`/watchlist/${symbol}/`),
 };
 
 export default api;
