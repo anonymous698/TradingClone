@@ -209,7 +209,6 @@ def account_info(request):
         'usd_balance': float(profile.usd_balance),
         'member_since': request.user.date_joined,
     })
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def deposit(request):
@@ -217,9 +216,18 @@ def deposit(request):
         profile = request.user.profile
     except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=request.user)
-    amount = Decimal(str(request.data.get('amount', 0)))
-    if amount <= 0:
+    
+    try:
+        amount = Decimal(str(request.data.get('amount', 0)))
+    except:
         return Response({'error': 'Invalid amount'}, status=400)
+
+    if amount <= 0:
+        return Response({'error': 'Amount must be positive'}, status=400)
+    
+    if amount > Decimal('1000000'):
+        return Response({'error': 'Maximum deposit is $1,000,000'}, status=400)
+
     profile.usd_balance += amount
     profile.save()
     Transaction.objects.create(
