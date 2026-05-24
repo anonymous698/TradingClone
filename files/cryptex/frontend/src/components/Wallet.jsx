@@ -64,6 +64,7 @@ export default function Wallet({ portfolio, onDeposit }) {
           <div style={{display:'flex',gap:12}}>
             <input
               value={amount} onChange={e=>setAmount(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !loading && amount && parseFloat(amount) > 0) deposit(); }}
               type="number" min="1" placeholder="Enter amount..."
               style={{flex:1,padding:'12px 16px',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontSize:15,outline:'none',fontFamily:'var(--mono)'}}
             />
