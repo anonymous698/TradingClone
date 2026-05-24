@@ -14,8 +14,13 @@ CORS_ALLOW_ALL_ORIGINS = True          # For development (change later)
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
-    'trading-clone-9o4z12sj1-indraad444-gmailcoms-projects.vercel.app',   # ← Add your Vercel URL later
+    'http://127.0.0.1:5173',
+    'https://trading-clone-9o4z12sj1-indraad444-gmailcoms-projects.vercel.app',   # ← Your Vercel URL
+    'https://*.vercel.app',                                                       # ← Allows all Vercel subdomains
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True          # For development
+CORS_ALLOW_CREDENTIALS = True
 
 # Important for cookies
 CSRF_COOKIE_SECURE = False        # Set to True when using HTTPS
