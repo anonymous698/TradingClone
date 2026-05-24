@@ -46,51 +46,53 @@ export default function Portfolio({ portfolio, markets, onTrade }) {
               <p style={{fontSize:13,color:'var(--text3)'}}>Start trading to build your portfolio</p>
             </div>
           ) : (
-            <table style={{width:'100%',borderCollapse:'collapse'}}>
-              <thead>
-                <tr style={{borderBottom:'1px solid var(--border)',background:'rgba(255,255,255,0.02)'}}>
-                  {['Asset','Holdings','Avg Buy','Current','Value','P&L','Action'].map(h => (
-                    <th key={h} style={{padding:'10px 16px',textAlign:'left',fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:0.8}}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {holdings.filter(h=>h.quantity>0).map((h,i) => (
-                  <tr key={h.symbol} style={{borderBottom:'1px solid rgba(30,45,69,0.5)'}}>
-                    <td style={{padding:'14px 16px'}}>
-                      <div style={{display:'flex',alignItems:'center',gap:10}}>
-                        <div style={{width:32,height:32,borderRadius:'50%',background:COLORS[i%COLORS.length]+'20',border:`1px solid ${COLORS[i%COLORS.length]}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:COLORS[i%COLORS.length]}}>
-                          {h.symbol[0]}
-                        </div>
-                        <div>
-                          <p style={{fontWeight:600,fontSize:13}}>{h.symbol}</p>
-                          <p style={{fontSize:11,color:'var(--text3)'}}>{h.name}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontSize:13}}>{Number(h.quantity).toFixed(h.quantity < 0.01 ? 8 : 4)}</td>
-                    <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontSize:13,color:'var(--text2)'}}>${h.avg_buy_price?.toLocaleString('en',{minimumFractionDigits:2})}</td>
-                    <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontSize:13}}>${h.current_price < 1 ? h.current_price.toFixed(4) : h.current_price?.toLocaleString('en',{minimumFractionDigits:2})}</td>
-                    <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontWeight:600,fontSize:13}}>${h.value?.toLocaleString('en',{minimumFractionDigits:2})}</td>
-                    <td style={{padding:'14px 16px'}}>
-                      <div>
-                        <span className={h.pnl>=0?'positive':'negative'} style={{fontFamily:'var(--mono)',fontSize:13,display:'block'}}>
-                          {h.pnl>=0?'+':''}{h.pnl?.toFixed(2)}
-                        </span>
-                        <span className={h.pnl_pct>=0?'positive':'negative'} style={{fontSize:11}}>
-                          {h.pnl_pct>=0?'+':''}{h.pnl_pct?.toFixed(2)}%
-                        </span>
-                      </div>
-                    </td>
-                    <td style={{padding:'14px 16px'}}>
-                      <button onClick={() => onTrade(h.symbol)} style={{padding:'5px 12px',background:'transparent',border:'1px solid var(--border)',color:'var(--text2)',borderRadius:7,cursor:'pointer',fontSize:12,fontWeight:500}}>
-                        Trade
-                      </button>
-                    </td>
+            <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch'}}>
+              <table style={{width:'100%',borderCollapse:'collapse'}}>
+                <thead>
+                  <tr style={{borderBottom:'1px solid var(--border)',background:'rgba(255,255,255,0.02)'}}>
+                    {['Asset','Holdings','Avg Buy','Current','Value','P&L','Action'].map(h => (
+                      <th key={h} style={{padding:'10px 16px',textAlign:'left',fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:0.8,whiteSpace:'nowrap'}}>{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {holdings.filter(h=>h.quantity>0).map((h,i) => (
+                    <tr key={h.symbol} style={{borderBottom:'1px solid rgba(30,45,69,0.5)'}}>
+                      <td style={{padding:'14px 16px'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <div style={{width:32,height:32,borderRadius:'50%',background:COLORS[i%COLORS.length]+'20',border:`1px solid ${COLORS[i%COLORS.length]}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:COLORS[i%COLORS.length]}}>
+                            {h.symbol[0]}
+                          </div>
+                          <div>
+                            <p style={{fontWeight:600,fontSize:13}}>{h.symbol}</p>
+                            <p style={{fontSize:11,color:'var(--text3)'}}>{h.name}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontSize:13}}>{Number(h.quantity).toFixed(h.quantity < 0.01 ? 8 : 4)}</td>
+                      <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontSize:13,color:'var(--text2)'}}>${h.avg_buy_price?.toLocaleString('en',{minimumFractionDigits:2})}</td>
+                      <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontSize:13}}>${h.current_price < 1 ? h.current_price.toFixed(4) : h.current_price?.toLocaleString('en',{minimumFractionDigits:2})}</td>
+                      <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontWeight:600,fontSize:13}}>${h.value?.toLocaleString('en',{minimumFractionDigits:2})}</td>
+                      <td style={{padding:'14px 16px'}}>
+                        <div>
+                          <span className={h.pnl>=0?'positive':'negative'} style={{fontFamily:'var(--mono)',fontSize:13,display:'block'}}>
+                            {h.pnl>=0?'+':''}{h.pnl?.toFixed(2)}
+                          </span>
+                          <span className={h.pnl_pct>=0?'positive':'negative'} style={{fontSize:11}}>
+                            {h.pnl_pct>=0?'+':''}{h.pnl_pct?.toFixed(2)}%
+                          </span>
+                        </div>
+                      </td>
+                      <td style={{padding:'14px 16px'}}>
+                        <button onClick={() => onTrade(h.symbol)} style={{padding:'5px 12px',background:'transparent',border:'1px solid var(--border)',color:'var(--text2)',borderRadius:7,cursor:'pointer',fontSize:12,fontWeight:500,whiteSpace:'nowrap'}}>
+                          Trade
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 

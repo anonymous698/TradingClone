@@ -21,6 +21,7 @@ export default function Dashboard({ onLogout }) {
   const [account, setAccount] = useState(null);
   const [selectedCoin, setSelectedCoin] = useState('BTC');
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -57,8 +58,11 @@ export default function Dashboard({ onLogout }) {
 
   return (
     <div style={{display:'flex',height:'100vh',overflow:'hidden'}}>
+      {/* Sidebar overlay for mobile */}
+      <div className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`} onClick={() => setSidebarOpen(false)} />
+      
       {/* Sidebar */}
-      <aside style={{width:220,background:'var(--bg2)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',flexShrink:0}}>
+      <aside style={{width:220,background:'var(--bg2)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',flexShrink:0}} className={sidebarOpen ? 'active' : ''}>
         {/* Logo */}
         <div style={{padding:'20px 20px 16px',borderBottom:'1px solid var(--border)'}}>
           <div style={{display:'flex',alignItems:'center',gap:10}}>
@@ -81,7 +85,7 @@ export default function Dashboard({ onLogout }) {
         {/* Nav */}
         <nav style={{flex:1,padding:'12px 12px',display:'flex',flexDirection:'column',gap:2}}>
           {NAV.map(n => (
-            <button key={n.id} onClick={() => setTab(n.id)} style={{
+            <button key={n.id} onClick={() => {setTab(n.id); setSidebarOpen(false);}} style={{
               display:'flex',alignItems:'center',gap:12,padding:'11px 12px',borderRadius:10,border:'none',
               cursor:'pointer',textAlign:'left',fontWeight:500,fontSize:14,transition:'all 0.15s',
               background: tab===n.id ? 'rgba(0,229,255,0.1)' : 'transparent',
@@ -115,7 +119,10 @@ export default function Dashboard({ onLogout }) {
       <main style={{flex:1,overflow:'auto',background:'var(--bg)'}}>
         {/* Top bar */}
         <div style={{background:'var(--bg2)',borderBottom:'1px solid var(--border)',padding:'0 24px',height:56,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
-          <div>
+          <div style={{display:'flex',alignItems:'center'}}>
+            <button className="mobile-menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} style={{display:'none',background:'none',border:'none',color:'var(--text)',cursor:'pointer',fontSize:24,padding:8,marginRight:12}}>
+              ☰
+            </button>
             <h1 style={{fontSize:18,fontWeight:700,margin:0}}>{NAV.find(n=>n.id===tab)?.label}</h1>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:16}}>

@@ -57,16 +57,16 @@ export default function Markets({ markets, onTrade }) {
 
       {/* Table */}
       <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:16,overflow:'hidden'}}>
-        <div style={{padding:'16px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:12}}>
+        <div style={{padding:'16px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
           <input
             value={search} onChange={e=>setSearch(e.target.value)}
             placeholder="Search coins..."
-            style={{padding:'9px 14px',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:9,color:'var(--text)',fontSize:14,outline:'none',width:260}}
+            style={{padding:'9px 14px',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:9,color:'var(--text)',fontSize:14,outline:'none',flex:1,minWidth:200}}
           />
-          <span style={{fontSize:13,color:'var(--text2)',marginLeft:'auto'}}>{filtered.length} assets</span>
+          <span style={{fontSize:13,color:'var(--text2)'}}>{filtered.length} assets</span>
         </div>
 
-        <div style={{overflowX:'auto'}}>
+        <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch'}}>
           <table style={{width:'100%',borderCollapse:'collapse'}}>
             <thead>
               <tr style={{borderBottom:'1px solid var(--border)',background:'rgba(255,255,255,0.02)'}}>
@@ -121,7 +121,7 @@ export default function Markets({ markets, onTrade }) {
                   <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontSize:13,color:'var(--text2)'}}>{fmt(coin.volume_24h,0)}</td>
                   <td style={{padding:'14px 16px',fontFamily:'var(--mono)',fontSize:13,color:'var(--text2)'}}>{fmt(coin.market_cap,0)}</td>
                   <td style={{padding:'14px 16px'}}>
-                    <button onClick={() => onTrade(coin.symbol)} style={{padding:'6px 16px',background:'rgba(0,229,255,0.1)',border:'1px solid rgba(0,229,255,0.3)',color:'var(--accent)',borderRadius:7,cursor:'pointer',fontSize:13,fontWeight:600,transition:'all 0.15s'}}
+                    <button onClick={() => onTrade(coin.symbol)} style={{padding:'6px 16px',background:'rgba(0,229,255,0.1)',border:'1px solid rgba(0,229,255,0.3)',color:'var(--accent)',borderRadius:7,cursor:'pointer',fontSize:13,fontWeight:600,transition:'all 0.15s',whiteSpace:'nowrap'}}
                       onMouseEnter={e=>{e.target.style.background='rgba(0,229,255,0.2)'}}
                       onMouseLeave={e=>{e.target.style.background='rgba(0,229,255,0.1)'}}>
                       Trade
