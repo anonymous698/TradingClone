@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 if not SECRET_KEY:
-    raise ValueError("No SECRET_KEY found in environment variables!")
+    SECRET_KEY = 'django-insecure-local-dev-key-12345'
 DEBUG = False
 ALLOWED_HOSTS = ['*']
 STATIC_ROOT = 'staticfiles'
