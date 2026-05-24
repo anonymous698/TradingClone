@@ -322,9 +322,15 @@ a { text-decoration: none; color: inherit; }
     padding: 8px 10px !important;
   }
 
-  /* Hide non-essential table columns on mobile */
-  table th:nth-child(n+5),
-  table td:nth-child(n+5) {
+  /* Hide non-essential table columns on mobile while keeping the action column visible */
+  table th:nth-child(5),
+  table td:nth-child(5),
+  table th:nth-child(6),
+  table td:nth-child(6),
+  table th:nth-child(7),
+  table td:nth-child(7),
+  table th:nth-child(8),
+  table td:nth-child(8) {
     display: none;
   }
 

@@ -120,7 +120,7 @@ export default function Dashboard({ onLogout }) {
         {/* Top bar */}
         <div style={{background:'var(--bg2)',borderBottom:'1px solid var(--border)',padding:'0 24px',height:56,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
           <div style={{display:'flex',alignItems:'center'}}>
-            <button className="mobile-menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} style={{display:'none',background:'none',border:'none',color:'var(--text)',cursor:'pointer',fontSize:24,padding:8,marginRight:12}}>
+            <button className="mobile-menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} style={{background:'none',border:'none',color:'var(--text)',cursor:'pointer',fontSize:24,padding:8,marginRight:12}}>
               ☰
             </button>
             <h1 style={{fontSize:18,fontWeight:700,margin:0}}>{NAV.find(n=>n.id===tab)?.label}</h1>
