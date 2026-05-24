@@ -1,46 +1,35 @@
 import axios from 'axios';
 
-const BASE = 'http://localhost:8000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://tradingclone-production.up.railway.app';
 
-const api = axios.create({ baseURL: BASE });
-
-api.interceptors.request.use(cfg => {
-  const token = localStorage.getItem('token');
-  if (token) cfg.headers.Authorization = `Bearer ${token}`;
-  return cfg;
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-api.interceptors.response.use(
-  r => r,
-  err => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/';
-    }
-    return Promise.reject(err);
+// Add CSRF Token automatically
+api.interceptors.request.use((config) => {
+  const csrfToken = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('csrftoken='))
+    ?.split('=')[1];
+
+  if (csrfToken) {
+    config.headers['X-CSRFToken'] = csrfToken;
   }
-);
+  return config;
+});
 
+// Create authAPI object that Auth.jsx expects
 export const authAPI = {
-  login: (username, password) => axios.post(`${BASE}/auth/login/`, { username, password }),
-  register: (data) => axios.post(`${BASE}/auth/register/`, data),
-};
+  login: (username, password) => 
+    api.post('/api/auth/login/', { username, password }),
 
-export const marketAPI = {
-  getMarkets: () => api.get('/market/'),
-  getCoin: (symbol) => api.get(`/market/${symbol}/`),
-};
-
-export const tradingAPI = {
-  getPortfolio: () => api.get('/portfolio/'),
-  placeOrder: (data) => api.post('/orders/', data),
-  getOrders: () => api.get('/orders/history/'),
-  getTransactions: () => api.get('/transactions/'),
-  getAccount: () => api.get('/account/'),
-  deposit: (amount) => api.post('/deposit/', { amount }),
-  getWatchlist: () => api.get('/watchlist/'),
-  addWatchlist: (symbol) => api.post('/watchlist/', { symbol }),
-  removeWatchlist: (symbol) => api.delete(`/watchlist/${symbol}/`),
+  register: (data) => 
+    api.post('/api/auth/register/', data),
 };
 
 export default api;
