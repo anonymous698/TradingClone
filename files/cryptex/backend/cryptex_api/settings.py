@@ -3,8 +3,9 @@ from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-cryptex-trading-platform-secret-key-2024'
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['*']
+STATIC_ROOT = 'staticfiles'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
