@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// Add CSRF Token automatically
+// Auto-add CSRF token
 api.interceptors.request.use((config) => {
   const csrfToken = document.cookie
     .split('; ')
@@ -23,13 +23,25 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Create authAPI object that Auth.jsx expects
+// Auth APIs
 export const authAPI = {
   login: (username, password) => 
     api.post('/api/auth/login/', { username, password }),
-
+  
   register: (data) => 
     api.post('/api/auth/register/', data),
+};
+
+// Market & Trading APIs (added for Trade.jsx)
+export const marketAPI = {
+  getMarketData: () => api.get('/api/market/'),
+  getPrice: (symbol) => api.get(`/api/market/price/${symbol}/`),
+};
+
+export const tradingAPI = {
+  getPositions: () => api.get('/api/trading/positions/'),
+  placeOrder: (orderData) => api.post('/api/trading/orders/', orderData),
+  getOrders: () => api.get('/api/trading/orders/'),
 };
 
 export default api;
