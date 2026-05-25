@@ -138,18 +138,18 @@ def place_order(request):
     quantity = Decimal(str(request.data.get('quantity', 0)))
     limit_price = request.data.get('price')
 
-    # Get coin from database
-    try:
-        coin = Coin.objects.get(symbol=symbol)
-    except Coin.DoesNotExist:
+    if symbol not in MOCK_PRICES:
         return Response({'error': 'Invalid symbol'}, status=400)
-    
+
+    info = MOCK_PRICES[symbol]
+    import random
+    fill_price = Decimal(str(info['price'] * (1 + random.uniform(-0.1, 0.1) / 100)))
+
     if side not in ('buy', 'sell'):
         return Response({'error': 'Invalid side'}, status=400)
     if quantity <= 0:
         return Response({'error': 'Quantity must be positive'}, status=400)
 
-    fill_price = coin.price
     total = (fill_price * quantity).quantize(Decimal('0.01'))
     fee = (total * Decimal('0.001')).quantize(Decimal('0.01'))  # 0.1% fee
 
@@ -161,7 +161,7 @@ def place_order(request):
         profile.save()
         holding, created = Holding.objects.get_or_create(
             user=request.user, symbol=symbol,
-            defaults={'name': coin.name, 'quantity': 0, 'avg_buy_price': fill_price}
+            defaults={'name': info['name'], 'quantity': Decimal('0'), 'avg_buy_price': fill_price}
         )
         if not created:
             total_qty = holding.quantity + quantity
@@ -187,7 +187,7 @@ def place_order(request):
         profile.save()
 
     order = Order.objects.create(
-        user=request.user, symbol=symbol, name=coin.name,
+        user=request.user, symbol=symbol, name=info['name'],
         order_type=order_type, side=side, quantity=quantity,
         price=limit_price, filled_price=fill_price, filled_quantity=quantity,
         status='filled', total_value=total, fee=fee
@@ -195,11 +195,11 @@ def place_order(request):
     Transaction.objects.create(
         user=request.user, transaction_type=side, symbol=symbol,
         quantity=quantity, price=fill_price,
-        usd_amount=total if side=='buy' else -total,
+        usd_amount=total if side == 'buy' else -total,
         fee=fee, balance_after=profile.usd_balance
     )
     return Response({
-        'message': f'Order filled successfully',
+        'message': 'Order filled successfully',
         'order_id': order.id,
         'filled_price': float(fill_price),
         'quantity': float(quantity),
@@ -256,6 +256,7 @@ def account_info(request):
         'usd_balance': float(profile.usd_balance),
         'member_since': request.user.date_joined,
     })
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def deposit(request):
