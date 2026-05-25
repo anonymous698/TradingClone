@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from decimal import Decimal, ROUND_DOWN
+import random
 from .models import UserProfile, Holding, Order, WatchlistItem, Transaction, Coin, CoinChart
 from .serializers import *
 
@@ -90,18 +91,18 @@ def portfolio(request):
         profile = request.user.profile
     except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=request.user)
-    
+
     holdings = Holding.objects.filter(user=request.user, quantity__gt=0)
     holdings_data = []
     total_value = float(profile.usd_balance)
-    
+
     for h in holdings:
         try:
             coin = Coin.objects.get(symbol=h.symbol)
             current_price = float(coin.price)
         except Coin.DoesNotExist:
             current_price = 0
-        
+
         value = float(h.quantity) * current_price
         cost_basis = float(h.quantity) * float(h.avg_buy_price)
         pnl = value - cost_basis
@@ -117,7 +118,7 @@ def portfolio(request):
             'pnl': round(pnl, 2),
             'pnl_pct': round(pnl_pct, 2),
         })
-    
+
     return Response({
         'usd_balance': float(profile.usd_balance),
         'total_value': round(total_value, 2),
