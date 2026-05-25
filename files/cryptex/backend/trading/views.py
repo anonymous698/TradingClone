@@ -18,23 +18,70 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         return Response({'message': 'Account created successfully', 'username': user.username}, status=status.HTTP_201_CREATED)
 
+MOCK_PRICES = {
+    'BTC': {'price': 67432.50, 'change': 2.34, 'name': 'Bitcoin'},
+    'ETH': {'price': 3521.80, 'change': -1.12, 'name': 'Ethereum'},
+    'BNB': {'price': 412.30, 'change': 0.87, 'name': 'Binance Coin'},
+    'SOL': {'price': 189.45, 'change': 5.21, 'name': 'Solana'},
+    'XRP': {'price': 0.6234, 'change': -0.45, 'name': 'XRP'},
+    'ADA': {'price': 0.4521, 'change': 1.23, 'name': 'Cardano'},
+    'AVAX': {'price': 38.72, 'change': 3.45, 'name': 'Avalanche'},
+    'DOGE': {'price': 0.1823, 'change': -2.11, 'name': 'Dogecoin'},
+    'DOT': {'price': 7.83, 'change': 0.56, 'name': 'Polkadot'},
+    'MATIC': {'price': 0.8934, 'change': 1.89, 'name': 'Polygon'},
+    'LTC': {'price': 89.45, 'change': -0.78, 'name': 'Litecoin'},
+    'LINK': {'price': 14.23, 'change': 2.67, 'name': 'Chainlink'},
+    'UNI': {'price': 8.91, 'change': -1.34, 'name': 'Uniswap'},
+    'ATOM': {'price': 9.12, 'change': 0.91, 'name': 'Cosmos'},
+    'TRX': {'price': 0.1234, 'change': 0.34, 'name': 'TRON'},
+}
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def market_data(request):
-    """Return all coins from database"""
-    coins = Coin.objects.all()
-    return Response(CoinSerializer(coins, many=True).data)
+    import random
+    data = []
+    for symbol, info in MOCK_PRICES.items():
+        variation = random.uniform(-0.5, 0.5)
+        price = info['price'] * (1 + variation/100)
+        data.append({
+            'symbol': symbol,
+            'name': info['name'],
+            'price': round(price, 4),
+            'change_24h': round(info['change'] + variation, 2),
+            'volume_24h': round(random.uniform(1e8, 5e10), 0),
+            'market_cap': round(price * random.uniform(1e6, 1e10), 0),
+            'high_24h': round(price * 1.03, 4),
+            'low_24h': round(price * 0.97, 4),
+        })
+    return Response(data)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def coin_detail(request, symbol):
-    """Return coin details with chart data from database"""
+    import random
     symbol = symbol.upper()
-    try:
-        coin = Coin.objects.get(symbol=symbol)
-    except Coin.DoesNotExist:
+    if symbol not in MOCK_PRICES:
         return Response({'error': 'Coin not found'}, status=404)
-    return Response(CoinSerializer(coin).data)
+    info = MOCK_PRICES[symbol]
+    candles = []
+    price = info['price'] * 0.9
+    for i in range(90):
+        open_p = price
+        change = random.uniform(-3, 3) / 100
+        close_p = open_p * (1 + change)
+        high_p = max(open_p, close_p) * random.uniform(1, 1.02)
+        low_p = min(open_p, close_p) * random.uniform(0.98, 1)
+        volume = random.uniform(1e6, 1e8)
+        candles.append({
+            'time': i, 'open': round(open_p, 4), 'high': round(high_p, 4),
+            'low': round(low_p, 4), 'close': round(close_p, 4), 'volume': round(volume, 0),
+        })
+        price = close_p
+    return Response({
+        'symbol': symbol, 'name': info['name'],
+        'price': round(price, 4), 'change_24h': info['change'], 'candles': candles,
+    })
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
