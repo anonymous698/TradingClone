@@ -136,7 +136,10 @@ def place_order(request):
     order_type = request.data.get('order_type', 'market').lower()
     quantity = Decimal(str(request.data.get('quantity', 0)))
     limit_price = request.data.get('price')
+    leverage = int(request.data.get('leverage', 1))
 
+    if leverage < 1 or leverage > 100:
+        return Response({'error': 'Leverage must be between 1x and 100x'}, status=400)
     if symbol not in MOCK_PRICES:
         return Response({'error': 'Invalid symbol'}, status=400)
     if side not in ('buy', 'sell'):
@@ -145,14 +148,27 @@ def place_order(request):
         return Response({'error': 'Quantity must be positive'}, status=400)
 
     info = MOCK_PRICES[symbol]
-    fill_price = Decimal(str(info['price'] * (1 + random.uniform(-0.1, 0.1)/100)))
+    fill_price = Decimal(str(info['price'] * (1 + random.uniform(-0.1, 0.1) / 100)))
+
+    # Full position size
     total = (fill_price * quantity).quantize(Decimal('0.01'))
+
+    # Margin required = position / leverage
+    margin_required = (total / Decimal(str(leverage))).quantize(Decimal('0.01'))
+
+    # Fee on full position
     fee = (total * Decimal('0.001')).quantize(Decimal('0.01'))
 
+    # Liquidation price (90% of margin wiped)
     if side == 'buy':
-        cost = total + fee
+        liquidation_price = fill_price * (1 - Decimal('0.9') / Decimal(str(leverage)))
+    else:
+        liquidation_price = fill_price * (1 + Decimal('0.9') / Decimal(str(leverage)))
+
+    if side == 'buy':
+        cost = margin_required + fee
         if profile.usd_balance < cost:
-            return Response({'error': f'Insufficient USD balance. Need ${cost}, have ${profile.usd_balance}'}, status=400)
+            return Response({'error': f'Insufficient margin. Need ${cost} for {leverage}x leverage, have ${profile.usd_balance}'}, status=400)
         profile.usd_balance -= cost
         profile.save()
         holding, created = Holding.objects.get_or_create(
@@ -178,8 +194,8 @@ def place_order(request):
         if holding.quantity <= Decimal('0.00000001'):
             holding.quantity = Decimal('0')
         holding.save()
-        proceeds = total - fee
-        profile.usd_balance += proceeds
+        proceeds = margin_required - fee
+        profile.usd_balance += proceeds + margin_required
         profile.save()
 
     order = Order.objects.create(
@@ -192,15 +208,19 @@ def place_order(request):
         user=request.user, transaction_type=side, symbol=symbol,
         quantity=quantity, price=fill_price,
         usd_amount=total if side=='buy' else -total,
-        fee=fee, balance_after=profile.usd_balance
+        fee=fee, balance_after=profile.usd_balance,
+        notes=f'{leverage}x leverage'
     )
     return Response({
         'message': 'Order filled successfully',
         'order_id': order.id,
         'filled_price': float(fill_price),
         'quantity': float(quantity),
-        'total': float(total),
+        'position_size': float(total),
+        'margin_used': float(margin_required),
         'fee': float(fee),
+        'leverage': leverage,
+        'liquidation_price': round(float(liquidation_price), 4),
         'new_balance': float(profile.usd_balance),
     })
 
