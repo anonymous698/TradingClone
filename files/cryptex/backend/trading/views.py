@@ -5,19 +5,8 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from decimal import Decimal, ROUND_DOWN
 import random
-from .models import UserProfile, Holding, Order, WatchlistItem, Transaction, Coin, CoinChart
+from .models import UserProfile, Holding, Order, WatchlistItem, Transaction
 from .serializers import *
-
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response({'message': 'Account created successfully', 'username': user.username}, status=status.HTTP_201_CREATED)
 
 MOCK_PRICES = {
     'BTC': {'price': 67432.50, 'change': 2.34, 'name': 'Bitcoin'},
@@ -37,10 +26,20 @@ MOCK_PRICES = {
     'TRX': {'price': 0.1234, 'change': 0.34, 'name': 'TRON'},
 }
 
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({'message': 'Account created successfully', 'username': user.username}, status=status.HTTP_201_CREATED)
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def market_data(request):
-    import random
     data = []
     for symbol, info in MOCK_PRICES.items():
         variation = random.uniform(-0.5, 0.5)
@@ -60,7 +59,6 @@ def market_data(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def coin_detail(request, symbol):
-    import random
     symbol = symbol.upper()
     if symbol not in MOCK_PRICES:
         return Response({'error': 'Coin not found'}, status=404)
@@ -97,10 +95,10 @@ def portfolio(request):
     total_value = float(profile.usd_balance)
 
     for h in holdings:
-        try:
-            coin = Coin.objects.get(symbol=h.symbol)
-            current_price = float(coin.price)
-        except Coin.DoesNotExist:
+        info = MOCK_PRICES.get(h.symbol)
+        if info:
+            current_price = info['price'] * (1 + random.uniform(-0.5, 0.5)/100)
+        else:
             current_price = 0
 
         value = float(h.quantity) * current_price
@@ -141,18 +139,15 @@ def place_order(request):
 
     if symbol not in MOCK_PRICES:
         return Response({'error': 'Invalid symbol'}, status=400)
-
-    info = MOCK_PRICES[symbol]
-    import random
-    fill_price = Decimal(str(info['price'] * (1 + random.uniform(-0.1, 0.1) / 100)))
-
     if side not in ('buy', 'sell'):
         return Response({'error': 'Invalid side'}, status=400)
     if quantity <= 0:
         return Response({'error': 'Quantity must be positive'}, status=400)
 
+    info = MOCK_PRICES[symbol]
+    fill_price = Decimal(str(info['price'] * (1 + random.uniform(-0.1, 0.1)/100)))
     total = (fill_price * quantity).quantize(Decimal('0.01'))
-    fee = (total * Decimal('0.001')).quantize(Decimal('0.01'))  # 0.1% fee
+    fee = (total * Decimal('0.001')).quantize(Decimal('0.01'))
 
     if side == 'buy':
         cost = total + fee
@@ -196,7 +191,7 @@ def place_order(request):
     Transaction.objects.create(
         user=request.user, transaction_type=side, symbol=symbol,
         quantity=quantity, price=fill_price,
-        usd_amount=total if side == 'buy' else -total,
+        usd_amount=total if side=='buy' else -total,
         fee=fee, balance_after=profile.usd_balance
     )
     return Response({
@@ -223,13 +218,11 @@ def watchlist(request, symbol=None):
         return Response(WatchlistSerializer(items, many=True).data)
     elif request.method == 'POST':
         sym = request.data.get('symbol', '').upper()
-        try:
-            coin = Coin.objects.get(symbol=sym)
-        except Coin.DoesNotExist:
+        if sym not in MOCK_PRICES:
             return Response({'error': 'Invalid symbol'}, status=400)
         item, created = WatchlistItem.objects.get_or_create(
             user=request.user, symbol=sym,
-            defaults={'name': coin.name}
+            defaults={'name': MOCK_PRICES[sym]['name']}
         )
         return Response(WatchlistSerializer(item).data, status=201 if created else 200)
     elif request.method == 'DELETE':
@@ -265,7 +258,7 @@ def deposit(request):
         profile = request.user.profile
     except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=request.user)
-    
+
     try:
         amount = Decimal(str(request.data.get('amount', 0)))
     except:
@@ -273,7 +266,7 @@ def deposit(request):
 
     if amount <= 0:
         return Response({'error': 'Amount must be positive'}, status=400)
-    
+
     if amount > Decimal('1000000'):
         return Response({'error': 'Maximum deposit is $1,000,000'}, status=400)
 
